@@ -1,0 +1,6 @@
+.shadow-cljs
+.nrepl-port
+node_modules
+public/js/oidc-config.js
+public/js/main.js
+public/js/cljs-runtime

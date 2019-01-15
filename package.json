@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "shadow-cljs": "^2.3.22",
+    "tailwindcss": "^0.7.3"
+  },
+  "dependencies": {
+    "oidc-client": "^1.6.1"
+  }
+}
