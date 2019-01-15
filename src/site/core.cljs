@@ -1,21 +1,22 @@
 (ns site.core
-  [:require [reagent.core :as r]
-            [oidc.core :as oidc]])
+  [:require 
+   [reagent.core :as r]
+   [oidc.core :as oidc]
+   [site.components :as themed]])
 
 (def user (r/atom {}))
 
-(def themed-body :div.p-2)
-(def themed-button :button.bg-green.p-2.m-2.rounded-lg.text-white.hover:bg-green-dark)
-
 (defn home-page []
   (js/console.log "Current User" (clj->js @user))
-  [:div
-   [themed-body "CurrentUser: "
-    [:ul
-     [:li "Email: " (:email @user)]]]
+  [themed/body
+   [themed/div "CurrentUser: " 
+    (if (empty? @user)
+      [themed/text "Not Set"]
+      [themed/ul
+       [themed/li "Email: " (:email @user)]])]
    
-   [themed-button {:on-click oidc/login} "Login"]
-   [themed-button {:on-click oidc/logout} "Logout"]])
+   [themed/button {:on-click oidc/login} "Login"]
+   [themed/button {:on-click oidc/logout} "Logout"]])
   
 
 (defn init []
