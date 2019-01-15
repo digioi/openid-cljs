@@ -1,4 +1,8 @@
-{
+{ 
+  "scripts": {
+    "start": "npx shadow-cljs watch :app",
+    "build:css": "npx tailwind build ./styles/main.css -o ./public/css/main.css"
+  },
   "devDependencies": {
     "shadow-cljs": "^2.3.22",
     "tailwindcss": "^0.7.3"

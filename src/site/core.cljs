@@ -4,12 +4,18 @@
 
 (def user (r/atom {}))
 
+(def themed-body :div.p-2)
+(def themed-button :button.bg-green.p-2.m-2.rounded-lg.text-white.hover:bg-green-dark)
+
 (defn home-page []
   (js/console.log "Current User" (clj->js @user))
   [:div
-   [:div "CurrentUser: " (:email @user)]
-   [:button {:on-click oidc/login} "Login"]
-   [:button {:on-click oidc/logout} "Logout"]])
+   [themed-body "CurrentUser: "
+    [:ul
+     [:li "Email: " (:email @user)]]]
+   
+   [themed-button {:on-click oidc/login} "Login"]
+   [themed-button {:on-click oidc/logout} "Logout"]])
   
 
 (defn init []
