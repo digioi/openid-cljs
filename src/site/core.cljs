@@ -16,7 +16,8 @@
        [themed/li "Email: " (:email @user)]])]
    
    [themed/button {:on-click oidc/login} "Login"]
-   [themed/button {:on-click oidc/logout} "Logout"]])
+   [themed/button {:on-click oidc/logout} "Logout"]
+   [themed/button {:on-click oidc/reissue-token} "reset"]])
   
 
 (defn init []

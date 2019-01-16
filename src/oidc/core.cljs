@@ -24,45 +24,37 @@
           (.catch #(js/console.info "Loading from Session instead")))
       (js/Promise.resolve user))))
 
-(defn handle-token-expiring [user redirect] 
-  #(do
-     (js/console.log user "is expiring" %) 
-     (cond
-       js/OIDC_CONFIG.automaticSilentRenew (.signinSilent UserManager)
+(defn update-user [process-user-promise set-user login-user-promise]
+  (-> (.getUser UserManager)
+        (.then process-user-promise)
+        (.then login-user-promise)
+        (.then #(do (js/console.log (clj->js %) ) %))
+        (.then set-user)
+        (.catch #(js/console.log "signinRedirect Failed:" %))))
+
+(defn reissue-token []
+  (-> (.signinSilent UserManager)
+      (.then #(.getUser UserManager))))
+
+(defn get-token [user redirect]
+  #(cond
+       js/OIDC_CONFIG.automaticSilentRenew (reissue-token)
        redirect (login)
-       :else user)))
-
-(defn handle-token-error [user]
-  #(js/console.log %))
-
-(defn renew-user-promise [user-obj]
-  (js/console.log user-obj)
-  user-obj)
-
-; (defn atom? [o] (instance? clojure.lang.IAtom o))
-; ; (s/def ::promise #(= (class %) (class (promise))))
-
-; (s/fdef set-user!
-;   :args (s/cat :user atom?
-;                :kwargs (s/keys* :refresh? boolean?)))
+       :else user))
 
 (defn set-user! [user & {:keys [redirect] :or {redirect false}}]
   (let [process-user-promise #(if (nil? %) (process-user user) %)
-        login-user-promise   #(if (and (nil? %) redirect) (login) %)
-        set-user             #(if-not (nil? %)
-                                (let [new-user (merge {:access-token (.-id_token %)} (js->clj (.-profile %) :keywordize-keys true))]
+        login-user-promise   #(if (and (nil? %) redirect) (get-token user redirect) %)
+        set-user             #(if-not (or (nil? %) (nil? (.-id_token %)))
+                                (let [new-user (merge {:jwt (.-id_token %)} (js->clj (.-profile %) :keywordize-keys true))]
                                   (reset! user new-user)
                                   new-user)
-                                %)]
-    (.addAccessTokenExpiring UserManager.events (handle-token-expiring user redirect)) ; removes User data on Token Expiry
-    (.addSilentRenewError UserManager.events (handle-token-error user)) ; handle on Token Error
-    (.addAccessTokenExpired UserManager.events (handle-token-expiring user redirect)) ; removes User data on Token Expiry
-
-    (-> (.getUser UserManager)
-        (.then process-user-promise)
-        (.then renew-user-promise)
-        ; (.then login-user-promise)
-        (.then #(do (js/console.log (clj->js %) ) %))
-        (.then set-user)
-        (.catch #(js/console.log "signinRedirect Failed:" %)))))
+                                %)
+        update-user #(update-user process-user-promise set-user login-user-promise)]
+    (update-user)
+    (.addUserSignedOut UserManager.events #(reset! user {}))
+    (.addAccessTokenExpiring UserManager.events (get-token user redirect)) ; removes User data on Token Expiry
+    (.addSilentRenewError UserManager.events js/console.log) ; handle on Token Error
+    (.addAccessTokenExpired UserManager.events (get-token user redirect)) ; removes User data on Token Expiry
+    (.addUserLoaded UserManager.events update-user)))
 
