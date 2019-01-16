@@ -1,14 +1,8 @@
 ;; shadow-cljs configuration
 {:source-paths
  ["src"]
-
- :dependencies
- [[cider/cider-nrepl "0.16.0"]
-  [cljsjs/react "16.6.0-0"]
-  [cljsjs/react-dom "16.6.0-0"]
-  [reagent "0.8.1"]]
- :nrepl {:port 16061
-         :middleware []}
+ :deps         true
+ :nrepl {:port 16061}
 
  :builds
  {:app {:target :browser
@@ -17,7 +11,8 @@
         :modules
         {:main ;; <- becomes public/js/main.js
          {:entries [starter.browser oidc.silent]}}
-
+        :compiler-options
+        {:infer-externs    :auto}
         ;; start a development http server on http://localhost:8020
         :devtools
         {:http-root "public"

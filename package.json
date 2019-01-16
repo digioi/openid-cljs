@@ -1,13 +1,16 @@
-{ 
+{
   "scripts": {
     "start": "npx shadow-cljs watch :app",
     "build:css": "npx tailwind build ./styles/main.css -o ./public/css/main.css"
   },
   "devDependencies": {
-    "shadow-cljs": "^2.3.22",
+    "shadow-cljs": "^2.3.36",
     "tailwindcss": "^0.7.3"
   },
   "dependencies": {
-    "oidc-client": "^1.6.1"
+    "create-react-class": "^15.6.3",
+    "oidc-client": "^1.6.1",
+    "react": "^16.7.0",
+    "react-dom": "^16.7.0"
   }
 }
