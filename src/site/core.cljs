@@ -19,7 +19,7 @@
    [themed/button {:on-click oidc/logout} "Logout"]
    [themed/button {:on-click oidc/reissue-token} "reset"]])
   
-
 (defn init []
   (oidc/set-user! user)
   (r/render [home-page] (js/document.getElementById "app")))
+
