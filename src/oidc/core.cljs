@@ -42,19 +42,17 @@
        redirect (login)
        :else user))
 
-(defn set-user! [user & {:keys [redirect] :or {redirect false}}]
-  (let [process-user-promise #(if (nil? %) (process-user user) %)
-        login-user-promise   #(if (and (nil? %) redirect) (get-token user redirect) %)
-        set-user             #(if-not (or (nil? %) (nil? (.-id_token %)))
-                                (let [new-user (merge {:jwt (.-id_token %)} (js->clj (.-profile %) :keywordize-keys true))]
-                                  (reset! user new-user)
-                                  new-user)
-                                %)
-        update-user #(update-user process-user-promise set-user login-user-promise)]
-    (update-user)
-    (.addUserSignedOut UserManager.events #(reset! user {}))
-    (.addAccessTokenExpiring UserManager.events (get-token user redirect)) ; removes User data on Token Expiry
-    (.addSilentRenewError UserManager.events js/console.log) ; handle on Token Error
-    (.addAccessTokenExpired UserManager.events (get-token user redirect)) ; removes User data on Token Expiry
-    (.addUserLoaded UserManager.events update-user)))
+(defn getUser [& [update-fn]]
+  (let [update-fn (or update-fn identity)]
+    (-> (.getUser UserManager)
+        (.then #(if (nil? %) (process-user) %))
+        (.then #(merge {:jwt (.-id_token %)} (js->clj (.-profile %) :keywordize-keys true)))
+        (.then update-fn))))
+
+(defn on-update [listener-fn]
+  (.addUserLoaded UserManager.events #(getUser listener-fn))
+  (.addUserSignedOut UserManager.events #(listener-fn {}))
+  (.addSilentRenewError UserManager.events js/console.error))
+
+(.addAccessTokenExpiring UserManager.events reissue-token)
 

@@ -1,25 +1,25 @@
 (ns site.core
   [:require 
    [reagent.core :as r]
+   [oidc.context :as user-context]
    [oidc.core :as oidc]
    [site.components :as themed]])
 
-(def user (r/atom {}))
+(defn userLabel [user] 
+  [themed/div "CurrentUser: "
+   (js/console.log "UserLabel" user)
+   (if (empty? user)
+     [themed/text "Not Set"]
+     [themed/ul
+      [themed/li "Email: " (:email user)]])])
 
 (defn home-page []
-  (js/console.log "Current User" (clj->js @user))
   [themed/body
-   [themed/div "CurrentUser: " 
-    (if (empty? @user)
-      [themed/text "Not Set"]
-      [themed/ul
-       [themed/li "Email: " (:email @user)]])]
-   
-   [themed/button {:on-click oidc/login} "Login"]
-   [themed/button {:on-click oidc/logout} "Logout"]
-   [themed/button {:on-click oidc/reissue-token} "reset"]])
+    [user-context/with-current-user userLabel]
+    [themed/button {:on-click oidc/login} "Login"]
+    [themed/button {:on-click oidc/logout} "Logout"]
+    [themed/button {:on-click oidc/reissue-token} "reset"]])
   
 (defn init []
-  (oidc/set-user! user)
-  (r/render [home-page] (js/document.getElementById "app")))
+  (r/render [user-context/provider [home-page]] (js/document.getElementById "app")))
 
