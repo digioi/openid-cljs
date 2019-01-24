@@ -33,8 +33,9 @@
         (.catch #(js/console.log "signinRedirect Failed:" %))))
 
 (defn reissue-token []
-  (-> (.signinSilent UserManager)
-      (.then #(.getUser UserManager))))
+  (when js/OIDC_CONFIG.automaticSilentRenew
+    (-> (.signinSilent UserManager)
+        (.then #(.getUser UserManager)))))
 
 (defn get-token [user redirect]
   #(cond
@@ -46,13 +47,17 @@
   (let [update-fn (or update-fn identity)]
     (-> (.getUser UserManager)
         (.then #(if (nil? %) (process-user) %))
-        (.then #(merge {:jwt (.-id_token %)} (js->clj (.-profile %) :keywordize-keys true)))
+        (.then #(merge {:jwt (.-id_token %) "access-token" (.-access_token %)} (js->clj (.-profile %))))
         (.then update-fn))))
 
 (defn on-update [listener-fn]
   (.addUserLoaded UserManager.events #(getUser listener-fn))
-  (.addUserSignedOut UserManager.events #(listener-fn {}))
+  (.addUserUnloaded UserManager.events #(listener-fn nil))
+  (.addUserSignedOut UserManager.events #(listener-fn nil))
   (.addSilentRenewError UserManager.events js/console.error))
 
 (.addAccessTokenExpiring UserManager.events reissue-token)
+(.addAccessTokenExpired UserManager.events #(if js/OIDC_CONFIG.automaticSilentRenew
+                                              (reissue-token)
+                                              (.removeUser UserManager)))
 

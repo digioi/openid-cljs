@@ -7,11 +7,13 @@
 
 (defn userLabel [user] 
   [themed/div "CurrentUser: "
-   (js/console.log "UserLabel" user)
    (if (empty? user)
-     [themed/text "Not Set"]
+     [themed/text "Not Set"] 
      [themed/ul
-      [themed/li "Email: " (:email user)]])])
+      [themed/li "Email: " (:email user)]
+      [themed/li "AccessToken: " (:access-token user)]
+      [themed/li "JWT: " (:jwt user)]
+      [themed/li "Groups: " [:ul (map (fn [g] [:li g]) (:groups user))]]])])
 
 (defn home-page []
   [themed/body
