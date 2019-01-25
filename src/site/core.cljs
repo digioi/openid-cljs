@@ -15,12 +15,17 @@
       [themed/li "JWT: " (:jwt user)]
       [themed/li "Groups: " [:ul (map (fn [g] [:li g]) (:groups user))]]])])
 
+(defn authentication-button [user]
+  (if (empty? user)
+    [themed/button {:on-click oidc/login} "Login"]
+    [themed/button {:on-click oidc/logout} "Logout"])
+  )
+
 (defn home-page []
   [themed/body
     [user-context/with-current-user userLabel]
-    [themed/button {:on-click oidc/login} "Login"]
-    [themed/button {:on-click oidc/logout} "Logout"]
-    [themed/button {:on-click oidc/reissue-token} "reset"]])
+    [user-context/with-current-user authentication-button]
+    [themed/button {:on-click oidc/reissue-token} "Refresh Token"]])
   
 (defn init []
   (r/render [user-context/provider [home-page]] (js/document.getElementById "app")))
