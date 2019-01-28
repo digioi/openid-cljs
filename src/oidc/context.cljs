@@ -6,6 +6,7 @@
 
 (defonce context (react/createContext))
 (def obj->clj #(js->clj % :keywordize-keys true))
+
 (defn user-render-fn [render] 
   (fn [user-obj]
     (r/as-element (render (obj->clj user-obj))))) ; TODO: Figure out why i have to convert as object
